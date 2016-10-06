@@ -76,15 +76,6 @@ def insert_space(snip, space=" "):
     )
 endglobal
 
-priority 3
-# preserving original line 'and snip.buffer[snip.line]' to prevent
-# ) deletion by matchem
-context "not is_string() and snip.buffer[snip.line]"
-post_jump "insert_space(snip)"
-snippet , "comma auto" eAi
-,X
-endsnippet
-
 snippet n "func anonymous" w
 func ($1) $2${2/.+/ /}{
 	$3
@@ -177,7 +168,6 @@ endsnippet
 priority -1
 context "px.snippets.make_context(snip)"
 pre_expand "px.common.get_active_completer().reset()"
-post_jump "jump_to_if_body_on_err_not_nil(snip)"
 snippet i "if" bw
 if ${1:`!p snip.rv=get_value_for_if(snip.c, snip.context)`} {
     ${2:${VISUAL}}
@@ -369,27 +359,6 @@ func main() {
 }
 endsnippet
 
-post_jump "px.snippets.expand(snip)"
-snippet "^v" "var" bwrA
-vr$1
-endsnippet
-
-post_jump "px.snippets.expand(snip)"
-snippet "v" "var" bwr
-vr$1
-endsnippet
-
-snippet "vr" "var" bwr
-`!p
-vis = ""
-if snip.v.text  != "":
-	vis = snip.v.text.replace(" := ", " = ").replace("var ", "")
-`
-var (
-	${1:`!p snip.rv=vis`}
-)
-endsnippet
-
 snippet rn "return nil" bw
 return nil
 endsnippet
@@ -490,19 +459,6 @@ snip.rv = (",\n" + snip.context['inner_indent'] if t[2] else ",")
 snip.rv = ("," if t[2] else "") + "\n" + snip.context['upper_indent'] + ")"
 
 `
-endsnippet
-
-post_jump "px.snippets.expand(snip)"
-snippet rh "" b
-return h$1
-endsnippet
-
-snippet "return n" "return nil" bw
-return nil
-endsnippet
-
-snippet "r (.)" "return auto" bwrA
-return `!p snip.rv=match.group(1)`
 endsnippet
 
 snippet fr "for true forever" bw
@@ -811,61 +767,8 @@ def is_viable_for_equal_statement(snip):
         not is_inside_case_condition(snip)
 endglobal
 
-context "not is_string() and not is_comment() and is_viable_for_equal_statement(snip)"
-snippet : "colon equals auto" iAe
- :=`!p snip.rv = ' '`
-endsnippet
-
-context "not is_string() and not is_comment() and is_inside_struct_instance(snip)"
-snippet : "colon space auto" iAe
-:`!p snip.rv = ' '`
-endsnippet
-
-snippet = "" "not is_string() and not is_comment()" iAe
-`!p snip.rv = get_padded_equal_sign()`
-endsnippet
-
-priority 2
-snippet "= =" "" "is_if_condition(snip)" Aie
-== $0
-endsnippet
-
-priority 2
-snippet "= =" "" Ai
-:= $0
-endsnippet
-
-priority 3
-snippet "== =" "" Ai
-!= $0
-endsnippet
-
-priority 3
-snippet "!= =" "" Ai
-== $0
-endsnippet
-
-priority 3
-snippet ":= =" "" Ai
-= $0
-endsnippet
-
-snippet "=  " "!= nil" "is_if_condition(snip)" Aer
-!= nil$0
-endsnippet
-
 snippet "= n" "" "is_if_condition(snip)" Aie
 = nil$0
-endsnippet
-
-priority 4
-snippet "== nil[=n]" "" "is_if_condition(snip)" Aier
-!= nil$0
-endsnippet
-
-priority 4
-snippet "!= nil[=n]" "" "is_if_condition(snip)" Aier
-== nil$0
 endsnippet
 
 ########################################################################################
@@ -898,7 +801,6 @@ Options:
 """.replace('{PROGRAM}', snip.tabstops[1].current_text), options='m')
 endglobal
 
-post_jump "if snip.tabstop == 0: add_usage(snip)"
 snippet do "docopt" b
 args, err := docopt.Parse(usage, nil, true, "${1:`!p snip.rv = guess_binary_name_from_path()`} " + version, false)
 if err != nil {
@@ -910,7 +812,6 @@ snippet - "docopt command declaration" "is_inside_docopt_section(snip, 'usage')"
 `!p snip.rv = get_program_name_from_usage(snip)` -$0
 endsnippet
 
-post_jump "if snip.tabstop == 2: docopt_format_options(snip)"
 snippet "\s*-" "docopt option declaration" "is_inside_docopt_section(snip, 'options')" beAr
   -$1`!p snip.rv=get_options_indentation(snip)``!p snip.rv=split_long_docopt_line(t, snip)`$2
 endsnippet
